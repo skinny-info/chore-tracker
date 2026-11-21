@@ -25,6 +25,7 @@ let txs = [];
 let choreLogs = [];
 let allowances = [];
 let activeChild = null;
+try { activeChild = localStorage.getItem('bankActiveChild'); } catch (e) {}   // remembered per device
 let subscribed = false;
 
 const $ = id => document.getElementById(id);
@@ -77,6 +78,7 @@ async function boot() {
     subscribed = true;
     Core.subscribe(client, ['transactions', 'chore_log', 'allowances', 'children', 'settings'], loadAll);
   }
+  await refreshPinStatus();
   await refreshRate();
   const { data: paid } = await client.rpc('catch_up_interest');
   if (paid > 0) { await loadAll(); Core.toast('📈 Quarterly interest paid'); }
@@ -156,38 +158,144 @@ async function confirmOpening() {
   Core.toast('🏦 Opening balance set to ' + money(amount));
 }
 
-// ── Allowance approval ────────────────────────────────────────────────────────
-let allowanceTarget = null;
+// ── Parent PIN ────────────────────────────────────────────────────────────────
+// The PIN is checked on the server (never in this file), so it can't be read or bypassed here.
+let pinSet = false;
+let pinAction = null;       // { run(pin) -> rpc result, onOk(code) }
+let setPinThen = null;      // what to do after a PIN has just been created
 
-function openAllowanceModal(childId, weekKey) {
-  allowanceTarget = { childId, weekKey };
-  const child = children.find(c => c.id === childId);
-  const ws = parseYmd(weekKey);
-  $('allowanceText').textContent =
-    child.name + ' completed all chores for the week of ' + weekRangeLabel(ws) + '. Approve ' +
-    money(settings.allowance_amount) + '?';
-  $('allowanceModal').classList.remove('hidden');
+const PIN_MESSAGES = {
+  bad_pin: 'Wrong PIN. Try again.',
+  locked: 'Too many wrong tries. Try again in 15 minutes.',
+  no_pin: 'No parent PIN is set yet.',
+  not_eligible: 'That week doesn’t qualify for an allowance.',
+  bad_week: 'That week can’t be approved.',
+  invalid: 'The PIN must be 4–8 digits.',
+};
+const isPin = s => /^[0-9]{4,8}$/.test(s);
+
+async function refreshPinStatus() {
+  const { data, error } = await client.rpc('parent_pin_is_set');
+  if (!error) pinSet = data === true;
 }
-function closeAllowanceModal() { $('allowanceModal').classList.add('hidden'); allowanceTarget = null; }
 
-async function confirmAllowance() {
-  if (!allowanceTarget) return;
-  const { childId, weekKey } = allowanceTarget;
-  const btn = $('allowanceConfirm');
+function openPinModal(opts) {
+  pinAction = { run: opts.run, onOk: opts.onOk };
+  $('pinTitle').textContent = opts.title;
+  $('pinText').textContent = opts.text;
+  $('pinConfirm').textContent = opts.confirmLabel || 'Confirm';
+  $('pinInput').value = '';
+  $('pinError').textContent = '';
+  $('pinModal').classList.remove('hidden');
+  setTimeout(() => $('pinInput').focus(), 150);
+}
+function closePinModal() {
+  $('pinModal').classList.add('hidden');
+  $('pinInput').value = '';
+  pinAction = null;
+}
+
+async function confirmPin() {
+  if (!pinAction) return;
+  const pin = $('pinInput').value.trim();
+  if (!isPin(pin)) { $('pinError').textContent = 'Enter your 4–8 digit PIN.'; return; }
+  const btn = $('pinConfirm');
   btn.disabled = true;
-  const { error } = await client.rpc('approve_allowance', { p_child: childId, p_week: weekKey });
+  const { data, error } = await pinAction.run(pin);
   btn.disabled = false;
-  if (error) { Core.toast('⚠️ Couldn’t approve — check the internet'); return; }
+  if (error) { $('pinError').textContent = 'Couldn’t reach the server — check the internet.'; return; }
+  if (data === 'ok' || data === 'already') {
+    const act = pinAction;
+    closePinModal();
+    await act.onOk(data);
+    return;
+  }
+  $('pinError').textContent = PIN_MESSAGES[data] || 'Something went wrong. Try again.';
+  $('pinInput').value = '';
+  if (data === 'not_eligible' || data === 'bad_week') { await loadAll(); return; }
+  $('pinInput').focus();
+}
+
+function openSetPinModal(opts) {
+  opts = opts || {};
+  setPinThen = opts.then || null;
+  $('setPinTitle').textContent = pinSet ? 'Change parent PIN' : 'Create parent PIN';
+  $('setPinText').textContent = opts.intro ||
+    (pinSet ? 'Enter your current PIN, then choose a new one.'
+            : 'Choose a 4–8 digit PIN. You’ll enter it to approve allowances.');
+  $('oldPinGroup').classList.toggle('hidden', !pinSet);
+  ['oldPin', 'newPin', 'newPin2'].forEach(id => { $(id).value = ''; });
+  $('setPinError').textContent = '';
+  $('setPinModal').classList.remove('hidden');
+  setTimeout(() => $(pinSet ? 'oldPin' : 'newPin').focus(), 150);
+}
+function closeSetPinModal() { $('setPinModal').classList.add('hidden'); setPinThen = null; }
+
+async function confirmSetPin() {
+  const oldv = $('oldPin').value.trim(), n1 = $('newPin').value.trim(), n2 = $('newPin2').value.trim();
+  const err = $('setPinError');
+  if (pinSet && !isPin(oldv)) { err.textContent = 'Enter your current PIN.'; return; }
+  if (!isPin(n1)) { err.textContent = 'The new PIN must be 4–8 digits.'; return; }
+  if (n1 !== n2) { err.textContent = 'The two new PINs don’t match.'; return; }
+  const btn = $('setPinConfirm');
+  btn.disabled = true;
+  const { data, error } = await client.rpc('set_parent_pin', { p_new: n1, p_old: pinSet ? oldv : null });
+  btn.disabled = false;
+  if (error) { err.textContent = 'Couldn’t reach the server — check the internet.'; return; }
+  if (data === 'ok') {
+    const then = setPinThen;
+    pinSet = true;
+    closeSetPinModal();
+    Core.toast('🔐 Parent PIN saved');
+    if (then) then();
+    return;
+  }
+  err.textContent = data === 'bad_pin' ? 'Current PIN is wrong.' : (PIN_MESSAGES[data] || 'Something went wrong.');
+  if (data === 'bad_pin') { $('oldPin').value = ''; }
+}
+
+// ── Allowance approval (PIN required) ─────────────────────────────────────────
+async function openAllowanceModal(childId, weekKey) {
+  await refreshPinStatus();
+  if (!pinSet) {
+    openSetPinModal({
+      intro: 'First, create a parent PIN. You’ll enter it each time you approve an allowance.',
+      then: () => openAllowanceModal(childId, weekKey),
+    });
+    return;
+  }
   const child = children.find(c => c.id === childId);
-  closeAllowanceModal();
-  await loadAll();
-  Core.toast('🎉 ' + money(settings.allowance_amount) + ' paid to ' + child.name + '!');
+  const amount = money(settings.allowance_amount);
+  openPinModal({
+    title: 'Approve allowance',
+    text: child.name + ' completed all chores for the week of ' + weekRangeLabel(parseYmd(weekKey)) +
+          '. Enter your PIN to pay ' + amount + '.',
+    confirmLabel: 'Pay ' + amount,
+    run: pin => client.rpc('approve_allowance', { p_child: childId, p_week: weekKey, p_pin: pin }),
+    onOk: async code => {
+      await loadAll();
+      Core.toast(code === 'already' ? 'That week was already paid.' : '🎉 ' + amount + ' paid to ' + child.name + '!');
+    },
+  });
 }
 
 // ── Remove a transaction ──────────────────────────────────────────────────────
 async function removeTx(id) {
   const tx = txs.find(t => t.id === id);
   if (!tx || tx.type === 'interest') return;
+  if (tx.type === 'allowance') {
+    // Undoing a paid allowance also needs the parent PIN
+    await refreshPinStatus();
+    if (!pinSet) { Core.toast('Create a parent PIN first (Parent PIN, at the bottom).'); return; }
+    openPinModal({
+      title: 'Undo allowance',
+      text: 'Remove this ' + money(tx.amount) + ' allowance? That week goes back to “to approve”.',
+      confirmLabel: 'Remove',
+      run: pin => client.rpc('remove_allowance', { p_tx: id, p_pin: pin }),
+      onOk: async () => { await loadAll(); Core.toast('Removed — that week is waiting for approval again.'); },
+    });
+    return;
+  }
   const { error } = await client.from('transactions').delete().eq('id', id);
   if (error) { Core.toast('⚠️ Couldn’t remove — check the internet'); return; }
   await loadAll();
@@ -292,6 +400,7 @@ function renderHeader() {
   badge.classList.toggle('hidden', n === 0);
   badge.textContent = '💰 ' + n + ' to approve';
 
+  try { if (activeChild) localStorage.setItem('bankActiveChild', activeChild); } catch (e) {}
   const tabs = $('accountTabs');
   tabs.innerHTML = '';
   children.forEach((child, i) => {
@@ -412,6 +521,10 @@ $('pendingBadge').addEventListener('click', () => {
   if (c) { activeChild = c.id; render(); window.scrollTo(0, 0); }
 });
 $('signOut').addEventListener('click', () => { client && client.auth.signOut(); });
+$('pinSettings').addEventListener('click', async () => { await refreshPinStatus(); openSetPinModal(); });
+$('pinInput').addEventListener('keydown', e => { if (e.key === 'Enter') confirmPin(); });
+['oldPin', 'newPin', 'newPin2'].forEach(id =>
+  $(id).addEventListener('keydown', e => { if (e.key === 'Enter') confirmSetPin(); }));
 
 document.querySelectorAll('.tx-type-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -419,9 +532,11 @@ document.querySelectorAll('.tx-type-btn').forEach(btn => {
     document.querySelectorAll('.tx-type-btn').forEach(b => b.classList.toggle('active', b === btn));
   });
 });
-['txModal', 'openingModal', 'allowanceModal'].forEach(id => {
+['txModal', 'openingModal'].forEach(id => {
   $(id).addEventListener('click', function (e) { if (e.target === this) this.classList.add('hidden'); });
 });
+$('pinModal').addEventListener('click', function (e) { if (e.target === this) closePinModal(); });
+$('setPinModal').addEventListener('click', function (e) { if (e.target === this) closeSetPinModal(); });
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 if (!client) Core.showSetupNeeded();
