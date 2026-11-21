@@ -1,0 +1,153 @@
+/* Additions for the weekly + cloud version of the Chore Tracker (loads after style.css) */
+
+/* ── Week navigation ── */
+.week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 900px;
+  margin: 16px auto 0;
+  padding: 0 14px;
+}
+.week-nav-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--card);
+  color: var(--text-primary);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.week-nav-btn:active { transform: scale(0.93); }
+.week-nav-btn:disabled { opacity: 0.25; cursor: default; }
+.week-nav-center { flex: 1; text-align: center; }
+.week-nav-title { font-size: 22px; font-weight: 800; color: var(--text-primary); }
+.week-nav-sub { font-size: 14px; color: var(--text-muted); margin-top: 2px; min-height: 18px; }
+
+/* ── Status pill ── */
+.child-header { flex-wrap: wrap; }
+.week-status {
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.week-status.earned { background: var(--green-50); border-color: var(--green-400); color: var(--green-800); }
+.week-status.paid   { background: var(--green-400); border-color: var(--green-400); color: #fff; }
+.week-status.missed { color: var(--text-muted); }
+
+/* ── Weekly requirements checklist ── */
+.req-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+.req {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.req.done { background: var(--green-50); border-color: var(--green-400); color: var(--green-800); }
+.req-check {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 900;
+  color: #fff;
+  flex-shrink: 0;
+}
+.req.done .req-check { background: var(--green-400); border-color: var(--green-400); }
+.req-hint { display: block; font-size: 12px; font-weight: 500; color: var(--text-muted); }
+.req.done .req-hint { color: var(--green-600); }
+
+.chore-count {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--green-600);
+  background: var(--green-50);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+.past-note { font-size: 13px; color: var(--text-muted); margin: 0 0 12px; }
+.empty-note { font-size: 14px; color: var(--text-muted); padding: 4px 0; }
+
+/* ── Footer ── */
+.footer-row { text-align: center; margin-top: 28px; }
+.signout-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 8px 12px;
+}
+
+/* ── Login / setup overlay ── */
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.login-overlay.hidden { display: none; }
+.login-card {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+}
+.login-emoji { font-size: 44px; margin-bottom: 8px; }
+.login-card h2 { font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 18px; }
+.login-text { font-size: 15px; color: var(--text-secondary); line-height: 1.5; }
+.login-input {
+  width: 100%;
+  padding: 15px 14px;
+  margin-bottom: 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 17px;
+  background: var(--bg);
+  color: var(--text-primary);
+  outline: none;
+}
+.login-input:focus { border-color: var(--green-400); }
+.login-error { min-height: 20px; font-size: 14px; color: #c0392b; margin-bottom: 6px; }
+.login-btn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--green-400);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.login-btn:disabled { opacity: 0.6; }

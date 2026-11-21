@@ -1,0 +1,152 @@
+/* Additions for the cloud + weekly-allowance version of Kids Bank (loads after style.css) */
+
+.hidden { display: none !important; }
+
+/* ── Header: pending approvals badge ── */
+.header-right { display: flex; align-items: center; gap: 8px; }
+.pending-badge {
+  background: var(--amber);
+  color: #1a1200;
+  border: none;
+  border-radius: var(--radius-xs);
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.tab-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--amber);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ── Weekly allowance approval cards ── */
+.allow-card {
+  background: var(--amber-bg);
+  border: 1px solid rgba(251,191,36,0.35);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.allow-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.allow-title { font-size: 15px; font-weight: 800; color: var(--amber); }
+.allow-week  { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+.allow-ticks { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: 13px; color: var(--text-2); margin-bottom: 12px; }
+.allow-ticks .ok { color: var(--green); font-weight: 700; }
+.allow-approve {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--amber);
+  color: #1a1200;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.allow-approve:active { transform: scale(0.98); }
+
+/* ── Weekly chores summary ── */
+.week-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.week-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.week-row:last-child { border-bottom: none; }
+.week-row-label { font-size: 14px; font-weight: 700; color: var(--text-1); }
+.week-row-sub   { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+.week-state {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.week-state.paid    { background: var(--green-bg); color: var(--green); }
+.week-state.pending { background: var(--amber-bg); color: var(--amber); }
+.week-state.missed  { color: var(--text-3); }
+.week-state.now     { background: rgba(79,156,249,0.15); color: var(--accent-light); }
+
+/* ── Footer ── */
+.footer-row { text-align: center; padding: 8px 0 40px; }
+.signout-btn {
+  background: none;
+  border: none;
+  color: var(--text-3);
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 8px 12px;
+}
+
+/* ── Login / setup overlay ── */
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+}
+.login-emoji { font-size: 44px; margin-bottom: 8px; }
+.login-card h2 { font-size: 20px; font-weight: 800; color: var(--text-1); margin-bottom: 18px; }
+.login-text { font-size: 14px; color: var(--text-2); line-height: 1.5; }
+.login-input {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 10px;
+  border: 1.5px solid var(--border-2);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  background: var(--surface-2);
+  color: var(--text-1);
+  outline: none;
+}
+.login-input:focus { border-color: var(--accent); }
+.login-error { min-height: 20px; font-size: 13px; color: var(--red); margin-bottom: 6px; }
+.login-btn {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.login-btn:disabled { opacity: 0.6; }

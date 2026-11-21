@@ -9,8 +9,9 @@
   <meta name="apple-mobile-web-app-title" content="Chores">
   <meta name="theme-color" content="#1D9E75">
   <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-180.png">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="weekly.css">
 </head>
 <body>
 
@@ -21,11 +22,21 @@
 
   <header class="page-header">
     <h1>⭐ Chore Tracker</h1>
-    <p>Tap a chore to log it — allowance at 10!</p>
+    <p>Finish your 3 chores each week to earn your allowance!</p>
   </header>
+
+  <div class="week-nav">
+    <button class="week-nav-btn" id="weekPrev" aria-label="Previous week">‹</button>
+    <div class="week-nav-center">
+      <div class="week-nav-title" id="weekTitle"></div>
+      <div class="week-nav-sub" id="weekSub"></div>
+    </div>
+    <button class="week-nav-btn" id="weekNext" aria-label="Next week">›</button>
+  </div>
 
   <main class="main">
     <div class="children-grid" id="grid"></div>
+    <div class="footer-row"><button class="signout-btn" id="signOut">Sign out</button></div>
   </main>
 
   <!-- Avatar picker modal -->
@@ -39,6 +50,9 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="shared/config.js"></script>
+  <script src="shared/core.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -11,29 +11,29 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="bank-icon-180.png">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="weekly.css">
 </head>
 <body>
 
-  <!-- Header -->
   <header class="app-header">
     <div class="header-inner">
       <div class="bank-logo">
         <span class="bank-logo-icon">🐷</span>
         <div>
           <div class="bank-name">KIDS BANK</div>
-          <div class="bank-tagline" id="rateLabel">Loading rate…</div>
+          <div class="bank-tagline" id="rateLabel">Loading…</div>
         </div>
       </div>
       <div class="header-right">
+        <button class="pending-badge hidden" id="pendingBadge"></button>
         <div class="next-interest-badge" id="nextBadge"></div>
       </div>
     </div>
-    <!-- Account tabs -->
     <div class="account-tabs" id="accountTabs"></div>
   </header>
 
-  <!-- Main account view -->
   <main class="main" id="mainContent"></main>
+  <div class="footer-row"><button class="signout-btn" id="signOut">Sign out</button></div>
 
   <!-- Transaction modal -->
   <div class="modal-overlay hidden" id="txModal">
@@ -72,7 +72,7 @@
         <div class="modal-title">Opening Balance</div>
         <button class="modal-close" onclick="closeOpeningModal()">✕</button>
       </div>
-      <p class="modal-desc">Set the starting balance for this account.</p>
+      <p class="modal-desc">Set the starting balance for this account. This replaces any earlier opening balance.</p>
       <div class="form-group">
         <label class="form-label">Balance</label>
         <div class="amount-input-wrap">
@@ -91,18 +91,22 @@
   <div class="modal-overlay hidden" id="allowanceModal">
     <div class="modal">
       <div class="modal-header">
-        <div class="modal-title">Allowance Ready 🎉</div>
+        <div class="modal-title">Approve allowance</div>
         <button class="modal-close" onclick="closeAllowanceModal()">✕</button>
       </div>
       <p class="modal-desc" id="allowanceText"></p>
       <div class="modal-actions">
         <button class="btn-secondary" onclick="closeAllowanceModal()">Not yet</button>
-        <button class="btn-primary" onclick="confirmAllowance()">Pay €5.00</button>
+        <button class="btn-primary" id="allowanceConfirm" onclick="confirmAllowance()">Approve</button>
       </div>
     </div>
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../shared/config.js"></script>
+  <script src="../shared/core.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
