@@ -1,5 +1,5 @@
 // Network-first: always use the latest files when online, fall back to cache offline.
-const CACHE = 'kids-bank-v4';
+const CACHE = 'kids-bank-v5';
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -15,7 +15,7 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
   e.respondWith(
-    fetch(req)
+    fetch(req.url, { cache: 'no-store', credentials: 'same-origin' })
       .then(res => {
         const copy = res.clone();
         caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
