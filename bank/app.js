@@ -38,7 +38,7 @@ async function loadAll() {
     client.from('children').select('*').order('sort'),
     client.from('settings').select('*').eq('id', 1).single(),
   ]);
-  if (c.error || s.error) { Core.toast('⚠️ Can’t reach the server'); return false; }
+  if (c.error || s.error) { Core.toast('⚠️ ' + ((c.error || s.error).message || 'Can’t reach the server')); return false; }
   children = c.data;
   settings = s.data;
   if (!activeChild || !children.some(x => x.id === activeChild)) activeChild = children[0] && children[0].id;
@@ -49,7 +49,7 @@ async function loadAll() {
     client.from('chore_log').select('child_id,chore,done_at').gte('done_at', since).limit(5000),
     client.from('allowances').select('*'),
   ]);
-  if (t.error || l.error || a.error) { Core.toast('⚠️ Can’t reach the server'); return false; }
+  if (t.error || l.error || a.error) { Core.toast('⚠️ ' + ((t.error || l.error || a.error).message || 'Can’t reach the server')); return false; }
   txs = t.data; choreLogs = l.data; allowances = a.data;
   render();
   return true;
@@ -203,7 +203,7 @@ async function confirmPin() {
   btn.disabled = true;
   const { data, error } = await pinAction.run(pin);
   btn.disabled = false;
-  if (error) { $('pinError').textContent = 'Couldn’t reach the server — check the internet.'; return; }
+  if (error) { $('pinError').textContent = 'Server error: ' + (error.message || 'check the internet'); return; }
   if (data === 'ok' || data === 'already') {
     const act = pinAction;
     closePinModal();
@@ -241,7 +241,7 @@ async function confirmSetPin() {
   btn.disabled = true;
   const { data, error } = await client.rpc('set_parent_pin', { p_new: n1, p_old: pinSet ? oldv : null });
   btn.disabled = false;
-  if (error) { err.textContent = 'Couldn’t reach the server — check the internet.'; return; }
+  if (error) { err.textContent = 'Server error: ' + (error.message || 'check the internet'); return; }
   if (data === 'ok') {
     const then = setPinThen;
     pinSet = true;
