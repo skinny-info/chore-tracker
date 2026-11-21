@@ -1,5 +1,5 @@
 // Network-first: always use the latest files when online, fall back to cache offline.
-const CACHE = 'chore-tracker-v2';
+const CACHE = 'kids-bank-v4';
 
 self.addEventListener('install', () => self.skipWaiting());
 
