@@ -150,3 +150,13 @@
   cursor: pointer;
 }
 .login-btn:disabled { opacity: 0.6; }
+
+/* ── Parent PIN fields ── */
+.pin-input {
+  text-align: center;
+  font-size: 24px;
+  letter-spacing: 0.4em;
+  font-weight: 700;
+}
+.pin-input::placeholder { letter-spacing: 0.3em; }
+.pin-error { min-height: 20px; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--red); text-align: center; }
