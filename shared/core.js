@@ -90,8 +90,9 @@
   // ── Supabase client, login, realtime ───────────────────────────────────────
   function createClient() {
     const c = root.APP_CONFIG || {};
-    if (!c.SUPABASE_URL || /YOUR-PROJECT/.test(c.SUPABASE_URL) || !root.supabase) return null;
-    return root.supabase.createClient(c.SUPABASE_URL, c.SUPABASE_ANON_KEY, {
+    const key = c.SUPABASE_ANON_KEY || c.SUPABASE_PUBLISHABLE_KEY;
+    if (!c.SUPABASE_URL || /YOUR-PROJECT/.test(c.SUPABASE_URL) || !key || /YOUR-ANON-KEY/.test(key) || !root.supabase) return null;
+    return root.supabase.createClient(c.SUPABASE_URL, key, {
       auth: { persistSession: true, autoRefreshToken: true },
     });
   }
@@ -155,6 +156,24 @@
     // iPads suspend background apps: refresh when the app comes back to the foreground
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') fire(); });
     return ch;
+  }
+
+  // ── On-screen error banner (iPads have no console) ─────────────────────────
+  if (typeof document !== 'undefined') {
+    const show = msg => {
+      try {
+        let b = document.getElementById('errBanner');
+        if (!b) {
+          b = document.createElement('div'); b.id = 'errBanner';
+          b.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#b3261e;color:#fff;font:14px/1.4 -apple-system,sans-serif;padding:10px 14px;white-space:pre-wrap;word-break:break-word';
+          b.onclick = () => b.remove();
+          document.body.appendChild(b);
+        }
+        b.textContent = '⚠ ' + msg + '  (tap to dismiss)';
+      } catch (e) {}
+    };
+    root.addEventListener('error', e => show((e.message || 'Error') + (e.lineno ? ' — ' + (e.filename || '').split('/').pop() + ':' + e.lineno : '')));
+    root.addEventListener('unhandledrejection', e => show('Error: ' + ((e.reason && e.reason.message) || e.reason)));
   }
 
   const api = {
