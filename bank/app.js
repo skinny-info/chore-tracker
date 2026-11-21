@@ -505,6 +505,18 @@ function render() {
   renderMain();
 }
 
+// ── Sanity check: the page (index.html) must match this script ───────────────
+(function () {
+  const need = ['mainContent', 'accountTabs', 'pendingBadge', 'pinSettings', 'signOut', 'pinModal', 'setPinModal', 'rateLabel'];
+  const missing = need.filter(id => !document.getElementById(id));
+  if (missing.length) {
+    document.body.innerHTML = '<div style="padding:24px;font:18px/1.5 -apple-system,sans-serif;color:#fff;background:#0b1a33;min-height:100vh">' +
+      '<h2>Bank page is out of date</h2><p>index.html is missing: <b>' + missing.join(', ') + '</b>.</p>' +
+      '<p>Replace bank/index.html in the repo with the latest version, wait a minute, then reload.</p></div>';
+    throw new Error('bank/index.html is missing: ' + missing.join(', '));
+  }
+})();
+
 // ── Events ────────────────────────────────────────────────────────────────────
 $('mainContent').addEventListener('click', e => {
   const act = e.target.closest('[data-action]');
