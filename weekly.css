@@ -195,3 +195,12 @@
   font-weight: 800;
   cursor: pointer;
 }
+
+/* Tappable requirement rows */
+button.req { width: 100%; text-align: left; font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+button.req:active { transform: scale(0.98); }
+.req-label { flex: 1; }
+.req-plus { font-size: 26px; font-weight: 800; color: var(--text-muted); padding: 0 4px; }
+.req.done .req-plus { color: var(--green-600); }
+.req-list .other-row { margin: -2px 0 2px; }
+.req-list .other-submit { width: 42px; height: 42px; font-size: 26px; }
