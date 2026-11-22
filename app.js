@@ -34,6 +34,7 @@ let children = [];
 let logs = [];
 let allowances = [];
 let weekOffset = 0;            // 0 = this week, -1 = last week, …
+const otherOpen = {};          // which child has the "One other task" text box open
 const drafts = {};             // text typed into "Other" boxes, kept across re-renders
 const lockUntil = {};          // short per-child lock against accidental double taps
 let subscribed = false;
@@ -178,29 +179,24 @@ function cardHTML(child, idx, isCurrent) {
   else if (isCurrent) status = { cls: '', text: ev.doneCount + ' of ' + ev.items.length + ' done' };
   else status = { cls: 'missed', text: 'Not earned this week' };
 
-  const reqs = ev.items.map(i =>
-    '<div class="req' + (i.done ? ' done' : '') + '">' +
-      '<span class="req-check">' + (i.done ? '✓' : '') + '</span>' +
-      '<span class="req-label">' + i.icon + ' ' + esc(i.label) +
-        (i.hint ? '<span class="req-hint">' + esc(i.hint) + '</span>' : '') + '</span>' +
-    '</div>').join('');
+  const logId = { room: 'room', dishes: 'dishes' };
+  const reqs = ev.items.map(i => {
+    const n = i.id === 'other' ? ev.counts.bed + ev.counts.other : ev.counts[i.id];
+    const inner = '<span class="req-check">' + (i.done ? '✓' : '') + '</span>' +
+      '<span class="req-label">' + i.icon + ' ' + esc(i.label) + '</span>' +
+      (isCurrent ? (n > 1 ? '<span class="chore-count">×' + n + '</span>' : '') + '<span class="req-plus">+</span>' : '');
+    const row = isCurrent
+      ? '<button class="req' + (i.done ? ' done' : '') + '" data-req="' + i.id + '" data-child="' + child.id + '">' + inner + '</button>'
+      : '<div class="req' + (i.done ? ' done' : '') + '">' + inner + '</div>';
+    const box = isCurrent && i.id === 'other' && otherOpen[child.id]
+      ? '<div class="other-row"><span class="other-icon">📝</span>' +
+        '<input class="other-input" type="text" placeholder="e.g. fed the dog" maxlength="30" enterkeyhint="done" data-child="' + child.id + '" value="' + esc(drafts[child.id] || '') + '">' +
+        '<button class="other-submit" data-other="' + child.id + '"' + ((drafts[child.id] || '').trim() ? '' : ' disabled') + '>+</button></div>'
+      : '';
+    return row + box;
+  }).join('');
 
-  const buttons = isCurrent
-    ? '<div class="section-label">Log a chore</div><div class="chores-list">' +
-      ['bed', 'room', 'dishes'].map(id => {
-        const ch = CHORES[id];
-        const n = ev.counts[id];
-        return '<button class="chore-btn" data-child="' + child.id + '" data-chore="' + id + '">' +
-          '<span class="chore-icon">' + ch.icon + '</span><span class="chore-label">' + ch.label + '</span>' +
-          (n ? '<span class="chore-count">×' + n + '</span>' : '') +
-          '<span class="chore-plus">+</span></button>';
-      }).join('') +
-      '<div class="other-label">📝 Something else? Type what you did, then tap +</div>' +
-      '<div class="other-row"><span class="other-icon">📝</span>' +
-        '<input class="other-input" type="text" placeholder="e.g. fed the cat" maxlength="30" enterkeyhint="done" data-child="' + child.id + '" value="' + esc(drafts[child.id] || '') + '">' +
-        '<button class="other-submit" data-other="' + child.id + '"' + ((drafts[child.id] || '').trim() ? '' : ' disabled') + '>+</button></div>' +
-      '</div>'
-    : '<p class="past-note">Past week — view only.</p>';
+  const buttons = isCurrent ? '' : '<p class="past-note">Past week — view only.</p>';
 
   const history = mine.length
     ? mine.map(l => {
@@ -251,12 +247,22 @@ function submitOther(childId) {
   const text = (drafts[childId] || '').trim();
   if (!text) return;
   drafts[childId] = '';
+  otherOpen[childId] = false;
   addLog(childId, 'other', text);
 }
 
 $('grid').addEventListener('click', e => {
-  const chore = e.target.closest('[data-chore]');
-  if (chore) return addLog(chore.dataset.child, chore.dataset.chore);
+  const req = e.target.closest('[data-req]');
+  if (req) {
+    const cid = req.dataset.child;
+    if (req.dataset.req === 'other') {
+      otherOpen[cid] = !otherOpen[cid];
+      render();
+      if (otherOpen[cid]) { const el = document.querySelector('.other-input[data-child="' + cid + '"]'); if (el) el.focus(); }
+      return;
+    }
+    return addLog(cid, req.dataset.req);
+  }
   const other = e.target.closest('[data-other]');
   if (other) return submitOther(other.dataset.other);
   const ed = e.target.closest('[data-edit]');
