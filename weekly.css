@@ -151,3 +151,47 @@
   cursor: pointer;
 }
 .login-btn:disabled { opacity: 0.6; }
+
+/* ── "Other" chore: label above the text box, and editing ── */
+.other-label { font-size: 13px; font-weight: 700; color: var(--text-secondary); margin: 4px 0 6px; }
+.other-input { font-size: 17px; }
+
+.history-item-edit {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  font-size: 15px;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  opacity: 0.7;
+  -webkit-tap-highlight-color: transparent;
+}
+.history-item-edit:active { background: var(--green-50); opacity: 1; }
+
+.edit-input {
+  width: 100%;
+  padding: 16px 14px;
+  margin-bottom: 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 18px;
+  background: var(--bg);
+  color: var(--text-primary);
+  outline: none;
+}
+.edit-input:focus { border-color: var(--green-400); }
+.modal-save {
+  width: 100%;
+  padding: 16px;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--green-400);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+}
