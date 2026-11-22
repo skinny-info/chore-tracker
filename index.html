@@ -48,6 +48,16 @@
     </div>
   </div>
 
+  <!-- Edit an "Other" chore -->
+  <div class="modal-overlay hidden" id="editModal">
+    <div class="modal">
+      <div class="modal-title">What did you do?</div>
+      <input class="edit-input" id="editInput" type="text" maxlength="30" placeholder="e.g. fed the cat" autocomplete="off">
+      <button class="modal-save" onclick="saveEdit()">Save</button>
+      <button class="modal-cancel" onclick="closeEditModal()">Cancel</button>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
